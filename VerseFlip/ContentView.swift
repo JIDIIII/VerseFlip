@@ -8,17 +8,29 @@
 import SwiftUI
 
 struct ContentView: View {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("userNickname") private var userNickname = ""
+
+    @State private var isEnteringNickname = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        if hasCompletedOnboarding && userNickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+            MainTabView()
+        } else if isEnteringNickname {
+            NicknameView {
+                hasCompletedOnboarding = true
+                isEnteringNickname = false
+            }
+        } else {
+            SplashView {
+                isEnteringNickname = true
+            }
         }
-        .padding()
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
