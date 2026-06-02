@@ -8,6 +8,8 @@
 
 /* Begin PBXFileReference section */
 		9764D69F2FC9582500F6ECC2 /* VerseFlip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VerseFlip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9764D6AE2FC9A00000F6ECC2 /* Secrets.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		9764D6AF2FC9A00000F6ECC2 /* Secrets.example.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Secrets.example.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -24,6 +26,7 @@
 				"DesignReferences/UI-Mockups/verseflip-08-library-screen.png",
 				"DesignReferences/UI-Mockups/verseflip-09-review-flashcard-screen.png",
 				"DesignReferences/UI-Mockups/verseflip-10-review-complete-screen.png",
+				Info.plist,
 			);
 			target = 9764D69E2FC9582500F6ECC2 /* VerseFlip */;
 		};
@@ -54,6 +57,8 @@
 		9764D6962FC9582500F6ECC2 = {
 			isa = PBXGroup;
 			children = (
+				9764D6AE2FC9A00000F6ECC2 /* Secrets.xcconfig */,
+				9764D6AF2FC9A00000F6ECC2 /* Secrets.example.xcconfig */,
 				9764D6A12FC9582500F6ECC2 /* VerseFlip */,
 				9764D6A02FC9582500F6ECC2 /* Products */,
 			);
@@ -270,6 +275,7 @@
 		};
 		9764D6AB2FC9582600F6ECC2 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9764D6AE2FC9A00000F6ECC2 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -277,12 +283,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 68B83TA8RU;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VerseFlip/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -303,6 +305,7 @@
 		};
 		9764D6AC2FC9582600F6ECC2 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9764D6AE2FC9A00000F6ECC2 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -310,12 +313,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 68B83TA8RU;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VerseFlip/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

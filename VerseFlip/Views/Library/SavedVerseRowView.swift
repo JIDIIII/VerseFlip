@@ -48,6 +48,14 @@ struct SavedVerseRowView: View {
                             .foregroundStyle(VFColors.textMuted)
                             .lineLimit(1)
                     }
+
+                    if let notice = card.bibleVersion.copyrightNotice {
+                        Text(notice)
+                            .font(VFFonts.footnote)
+                            .foregroundStyle(VFColors.textMuted)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 if let onDelete {

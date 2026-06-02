@@ -85,9 +85,19 @@ struct VersePreviewView: View {
                     .background(VFColors.warmCream)
                     .clipShape(Circle())
 
-                Text(viewModel.previewReference)
-                    .font(.system(size: 25, weight: .bold, design: .serif))
-                    .foregroundStyle(VFColors.primaryNavy)
+                if viewModel.selectedVersionRequiresFetch {
+                    Text(viewModel.previewVerseText)
+                        .font(.system(size: 24, weight: .bold, design: .serif))
+                        .foregroundStyle(VFColors.primaryNavy)
+                        .lineSpacing(6)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text(viewModel.previewReference)
+                        .font(.system(size: 25, weight: .bold, design: .serif))
+                        .foregroundStyle(VFColors.primaryNavy)
+                }
+
+                copyrightNotice
             }
         }
     }
@@ -105,17 +115,35 @@ struct VersePreviewView: View {
                         .foregroundStyle(VFColors.primaryNavy)
                 }
 
-                Text("\"")
-                    .font(.system(size: 48, weight: .bold, design: .serif))
-                    .foregroundStyle(VFColors.softGold)
-                    .frame(height: 32)
+                if viewModel.selectedVersionRequiresFetch {
+                    Text(viewModel.previewReference)
+                        .font(.system(size: 25, weight: .bold, design: .serif))
+                        .foregroundStyle(VFColors.primaryNavy)
 
-                Text(viewModel.previewVerseText)
-                    .font(.system(size: 24, weight: .bold, design: .serif))
-                    .foregroundStyle(VFColors.primaryNavy)
-                    .lineSpacing(6)
-                    .fixedSize(horizontal: false, vertical: true)
+                    copyrightNotice
+                } else {
+                    Text("\"")
+                        .font(.system(size: 48, weight: .bold, design: .serif))
+                        .foregroundStyle(VFColors.softGold)
+                        .frame(height: 32)
+
+                    Text(viewModel.previewVerseText)
+                        .font(.system(size: 24, weight: .bold, design: .serif))
+                        .foregroundStyle(VFColors.primaryNavy)
+                        .lineSpacing(6)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var copyrightNotice: some View {
+        if let notice = viewModel.selectedVersion?.copyrightNotice {
+            Text(notice)
+                .font(VFFonts.footnote)
+                .foregroundStyle(VFColors.textMuted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 

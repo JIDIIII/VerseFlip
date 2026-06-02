@@ -9,6 +9,11 @@ import SwiftUI
 
 struct VerseSelectionView: View {
     @ObservedObject var viewModel: AddVerseViewModel
+    @State private var isShowingPreview = false
+
+    private let numberColumns = [
+        GridItem(.adaptive(minimum: 76), spacing: VFSpacing.medium)
+    ]
 
     var body: some View {
         ZStack {
@@ -39,6 +44,8 @@ struct VerseSelectionView: View {
 
                             if viewModel.verses.isEmpty {
                                 emptyVerseState
+                            } else if viewModel.selectedVersionRequiresFetch {
+                                numberOnlyVerseGrid
                             } else {
                                 VStack(spacing: 0) {
                                     ForEach(viewModel.verses) { verse in
@@ -60,6 +67,11 @@ struct VerseSelectionView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: VFSpacing.cardCornerRadius, style: .continuous))
                                 .shadow(color: VFColors.shadow, radius: VFSpacing.cardShadowRadius, x: 0, y: VFSpacing.cardShadowYOffset)
                             }
+
+                            if viewModel.selectedVersionRequiresFetch,
+                               let errorMessage = viewModel.passageFetchErrorMessage {
+                                errorRow(errorMessage)
+                            }
                         }
                         .padding(.horizontal, VFSpacing.xLarge)
                         .padding(.top, VFSpacing.large)
@@ -74,20 +86,24 @@ struct VerseSelectionView: View {
                     }
                 }
 
-                NavigationLink {
-                    VersePreviewView(viewModel: viewModel)
-                } label: {
-                    Label(buttonTitle, systemImage: "plus")
-                        .font(VFFonts.button)
-                        .foregroundStyle(VFColors.cardBackground)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: VFSpacing.buttonHeight)
-                        .background(viewModel.canPreviewSelection ? VFColors.primaryNavy : VFColors.textMuted)
-                        .clipShape(RoundedRectangle(cornerRadius: VFSpacing.controlCornerRadius, style: .continuous))
-                        .shadow(color: VFColors.shadow, radius: VFSpacing.controlShadowRadius, x: 0, y: VFSpacing.controlShadowYOffset)
+                Group {
+                    if viewModel.selectedVersionRequiresFetch {
+                        Button {
+                            fetchSelectedPassage()
+                        } label: {
+                            actionButtonLabel
+                        }
+                        .disabled(viewModel.canPreviewSelection == false || viewModel.isFetchingPassage)
+                    } else {
+                        NavigationLink {
+                            VersePreviewView(viewModel: viewModel)
+                        } label: {
+                            actionButtonLabel
+                        }
+                        .disabled(viewModel.canPreviewSelection == false)
+                    }
                 }
                 .buttonStyle(.plain)
-                .disabled(viewModel.canPreviewSelection == false)
                 .padding(.horizontal, VFSpacing.xLarge)
                 .padding(.top, VFSpacing.medium)
                 .padding(.bottom, VFSpacing.large)
@@ -96,6 +112,9 @@ struct VerseSelectionView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(isPresented: $isShowingPreview) {
+            VersePreviewView(viewModel: viewModel)
+        }
     }
 
     private var verseTitle: String {
@@ -111,6 +130,68 @@ struct VerseSelectionView: View {
     private var buttonTitle: String {
         let count = viewModel.selectedVerseList.count
         return count == 0 ? "Add Selected Verse" : "Add Selected Verse (\(count))"
+    }
+
+    private var actionButtonLabel: some View {
+        Label {
+            Text(viewModel.isFetchingPassage ? "Fetching Verse..." : buttonTitle)
+        } icon: {
+            if viewModel.isFetchingPassage {
+                ProgressView()
+                    .tint(VFColors.cardBackground)
+            } else {
+                Image(systemName: "plus")
+            }
+        }
+        .font(VFFonts.button)
+        .foregroundStyle(VFColors.cardBackground)
+        .frame(maxWidth: .infinity)
+        .frame(height: VFSpacing.buttonHeight)
+        .background(viewModel.canPreviewSelection && viewModel.isFetchingPassage == false ? VFColors.primaryNavy : VFColors.textMuted)
+        .clipShape(RoundedRectangle(cornerRadius: VFSpacing.controlCornerRadius, style: .continuous))
+        .shadow(color: VFColors.shadow, radius: VFSpacing.controlShadowRadius, x: 0, y: VFSpacing.controlShadowYOffset)
+    }
+
+    private var numberOnlyVerseGrid: some View {
+        LazyVGrid(columns: numberColumns, spacing: VFSpacing.medium) {
+            ForEach(viewModel.verses) { verse in
+                verseNumberButton(verse)
+            }
+        }
+    }
+
+    private func verseNumberButton(_ verse: BibleVerse) -> some View {
+        let isSelected = viewModel.isVerseSelected(verse)
+
+        return Button {
+            viewModel.toggleVerse(verse)
+        } label: {
+            ZStack(alignment: .topTrailing) {
+                Text("\(verse.number)")
+                    .font(.system(size: 30, weight: .bold, design: .serif))
+                    .foregroundStyle(isSelected ? VFColors.cardBackground : VFColors.primaryNavy)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 72)
+                    .background(isSelected ? VFColors.primaryNavy : VFColors.cardBackground)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: VFSpacing.cardCornerRadius, style: .continuous)
+                            .stroke(isSelected ? VFColors.softGold : VFColors.softBorder, lineWidth: isSelected ? 2 : 1)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: VFSpacing.cardCornerRadius, style: .continuous))
+                    .shadow(color: VFColors.shadow, radius: VFSpacing.cardShadowRadius, x: 0, y: VFSpacing.cardShadowYOffset)
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(VFColors.softGold)
+                        .background(Circle().fill(VFColors.cardBackground))
+                        .offset(x: 6, y: -6)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Verse \(verse.number)")
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
     }
 
     private func verseRow(_ verse: BibleVerse) -> some View {
@@ -171,6 +252,36 @@ struct VerseSelectionView: View {
             message: "Go back and choose a different chapter.",
             alignment: .leading
         )
+    }
+
+    private func errorRow(_ message: String) -> some View {
+        HStack(alignment: .top, spacing: VFSpacing.medium) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(VFColors.dangerRed)
+
+            Text(message)
+                .font(VFFonts.callout)
+                .foregroundStyle(VFColors.primaryNavy)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(VFSpacing.large)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(VFColors.cardBackground.opacity(0.72))
+        .overlay {
+            RoundedRectangle(cornerRadius: VFSpacing.controlCornerRadius, style: .continuous)
+                .stroke(VFColors.dangerRed.opacity(0.32), lineWidth: 1)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: VFSpacing.controlCornerRadius, style: .continuous))
+    }
+
+    private func fetchSelectedPassage() {
+        Task {
+            let didFetch = await viewModel.fetchSelectedPassage()
+            if didFetch {
+                isShowingPreview = true
+            }
+        }
     }
 }
 

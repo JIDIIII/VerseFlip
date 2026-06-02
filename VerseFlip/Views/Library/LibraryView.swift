@@ -23,12 +23,10 @@ struct LibraryView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: VFSpacing.xLarge) {
-                    libraryHeader
-                        .padding(.top, VFSpacing.large)
-
                     Text("Library")
                         .font(.system(size: 38, weight: .bold, design: .serif))
                         .foregroundStyle(VFColors.primaryNavy)
+                        .padding(.top, VFSpacing.large)
 
                     VFSearchBar(text: $viewModel.searchText, placeholder: "Search saved verses...")
 
@@ -83,21 +81,6 @@ struct LibraryView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage ?? "Please try again.")
-        }
-    }
-
-    private var libraryHeader: some View {
-        HStack(spacing: VFSpacing.medium) {
-            LibraryLogoMark()
-                .frame(width: 44, height: 50)
-
-            Text("VerseFlip")
-                .font(.system(size: 30, weight: .bold, design: .serif))
-                .foregroundStyle(VFColors.primaryNavy)
-
-            Spacer()
-
-            VFHeaderAccessoryIcon(systemName: "bell")
         }
     }
 
@@ -213,33 +196,6 @@ private struct CreateDeckCard: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 128)
-        }
-    }
-}
-
-private struct LibraryLogoMark: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .stroke(VFColors.softGold, lineWidth: 3)
-                .frame(width: 31, height: 41)
-                .overlay(alignment: .bottomLeading) {
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .stroke(VFColors.softGold, lineWidth: 3)
-                        .frame(width: 23, height: 11)
-                        .background(VFColors.warmCream)
-                        .offset(y: 1)
-                }
-
-            Image(systemName: "cross")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(VFColors.softGold)
-                .offset(y: -7)
-
-            Image(systemName: "arrow.right")
-                .font(.system(size: 17, weight: .heavy))
-                .foregroundStyle(VFColors.softGold)
-                .offset(x: 18, y: 19)
         }
     }
 }

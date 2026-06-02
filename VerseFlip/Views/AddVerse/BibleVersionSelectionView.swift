@@ -30,7 +30,7 @@ struct BibleVersionSelectionView: View {
                                 .foregroundStyle(VFColors.primaryNavy)
                         }
 
-                        Text("Select a translation to browse Scripture.")
+                        Text("Select a translation to add Scripture.")
                             .font(.system(size: 17, weight: .regular))
                             .foregroundStyle(VFColors.textMuted)
                     }
@@ -48,7 +48,7 @@ struct BibleVersionSelectionView: View {
                     }
 
                     NavigationLink {
-                        BookSelectionView(viewModel: viewModel)
+                        selectedVersionDestination
                     } label: {
                         Text("Continue")
                             .font(VFFonts.button)
@@ -71,10 +71,16 @@ struct BibleVersionSelectionView: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
+    @ViewBuilder
+    private var selectedVersionDestination: some View {
+        BookSelectionView(viewModel: viewModel)
+    }
+
     private func versionRow(for version: BibleVersion) -> some View {
         let isSelected = viewModel.selectedVersion == version
         let isEnabled = viewModel.isVersionEnabled(version)
         let statusText = viewModel.versionStatusText(version)
+        let unavailableMessage = isEnabled ? nil : viewModel.versionUnavailableMessage(version)
 
         return Button {
             viewModel.selectVersion(version)
@@ -85,7 +91,7 @@ struct BibleVersionSelectionView: View {
                         .fill(VFColors.warmCream)
                         .frame(width: 64, height: 64)
 
-                    Image(systemName: version == .esv ? "book" : "text.book.closed.fill")
+                    Image(systemName: version == .kjv ? "text.book.closed.fill" : "network")
                         .font(.system(size: 30, weight: .semibold))
                         .foregroundStyle(VFColors.primaryNavy)
                 }
@@ -110,6 +116,13 @@ struct BibleVersionSelectionView: View {
                     Text(version.displayName)
                         .font(.system(size: 16, weight: .regular))
                         .foregroundStyle(VFColors.textMuted)
+
+                    if let unavailableMessage {
+                        Text(unavailableMessage)
+                            .font(VFFonts.footnote)
+                            .foregroundStyle(VFColors.textMuted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Spacer(minLength: 0)

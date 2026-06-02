@@ -8,6 +8,15 @@
 import Combine
 import Foundation
 
+struct PreloadedReviewCard: Identifiable {
+    let index: Int
+    let card: VerseCard
+
+    var id: UUID {
+        card.id
+    }
+}
+
 final class ReviewViewModel: ObservableObject {
     @Published private(set) var cards: [VerseCard] = []
     @Published private(set) var decks: [Deck] = []
@@ -23,6 +32,7 @@ final class ReviewViewModel: ObservableObject {
     private let verseCardStore: VerseCardStore
     private let deckStore: DeckStore
     private let reviewingDueOnly: Bool
+    private var sessionReviewResults: [UUID: ReviewStatus] = [:]
 
     init(
         reviewingDueOnly: Bool = false,
@@ -39,8 +49,28 @@ final class ReviewViewModel: ObservableObject {
         cards.count
     }
 
+    var selectedCardIndex: Int {
+        currentIndex
+    }
+
+    var selectedCardID: UUID? {
+        currentCard?.id
+    }
+
     var selectedDeckName: String {
         displayName(for: selectedDeck)
+    }
+
+    var cardsForSelectedDeck: [VerseCard] {
+        cards
+    }
+
+    var preloadRadius: Int {
+        Self.preloadRadius(for: totalCount)
+    }
+
+    var visiblePreloadedCards: [PreloadedReviewCard] {
+        Self.preloadedCards(cards: cards, currentIndex: currentIndex, radius: preloadRadius)
     }
 
     var currentCard: VerseCard? {
@@ -57,6 +87,14 @@ final class ReviewViewModel: ObservableObject {
         }
 
         return min(currentIndex + 1, totalCount)
+    }
+
+    var canMoveToPreviousCard: Bool {
+        currentIndex > 0 && isComplete == false
+    }
+
+    var canMoveToNextCard: Bool {
+        currentIndex < totalCount - 1 && isComplete == false
     }
 
     var progressFraction: Double {
@@ -89,6 +127,36 @@ final class ReviewViewModel: ObservableObject {
 
     func toggleFlip() {
         isFlipped.toggle()
+    }
+
+    func setSelectedCardIndex(_ index: Int) {
+        guard cards.isEmpty == false, isComplete == false else {
+            return
+        }
+
+        let clampedIndex = clampedCardIndex(index)
+        guard clampedIndex != currentIndex else {
+            return
+        }
+
+        currentIndex = clampedIndex
+        isFlipped = false
+    }
+
+    func moveToPreviousCard() {
+        guard canMoveToPreviousCard else {
+            return
+        }
+
+        setSelectedCardIndex(currentIndex - 1)
+    }
+
+    func moveToNextCard() {
+        guard canMoveToNextCard else {
+            return
+        }
+
+        setSelectedCardIndex(currentIndex + 1)
     }
 
     func deckName(for card: VerseCard) -> String {
@@ -137,8 +205,9 @@ final class ReviewViewModel: ObservableObject {
             }
 
         guard resetReview else {
-            currentIndex = min(currentIndex, max(cards.count - 1, 0))
-            isComplete = cards.isEmpty
+            currentIndex = clampedCardIndex(currentIndex)
+            isComplete = false
+            isFlipped = false
             return
         }
 
@@ -148,6 +217,7 @@ final class ReviewViewModel: ObservableObject {
         reviewedCount = 0
         rememberedCount = 0
         needPracticeCount = 0
+        sessionReviewResults = [:]
     }
 
     private func markCurrentCard(as status: ReviewStatus) {
@@ -161,28 +231,87 @@ final class ReviewViewModel: ObservableObject {
         do {
             try verseCardStore.upsert(card)
             cards[currentIndex] = card
-            reviewedCount += 1
-
-            if status == .memorized {
-                rememberedCount += 1
-            } else {
-                needPracticeCount += 1
-            }
-
-            advance()
+            sessionReviewResults[card.id] = status
+            updateSessionCounts()
+            advanceAfterRating(from: currentIndex)
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    private func advance() {
-        let nextIndex = currentIndex + 1
+    private func clampedCardIndex(_ index: Int) -> Int {
+        guard cards.isEmpty == false else {
+            return 0
+        }
+
+        return min(max(index, 0), cards.count - 1)
+    }
+
+    private func updateSessionCounts() {
+        reviewedCount = sessionReviewResults.count
+        rememberedCount = sessionReviewResults.values.filter { $0 == .memorized }.count
+        needPracticeCount = reviewedCount - rememberedCount
+    }
+
+    private func advanceAfterRating(from ratedIndex: Int) {
         isFlipped = false
 
-        if nextIndex >= totalCount {
+        guard reviewedCount < totalCount else {
             isComplete = true
-        } else {
-            currentIndex = nextIndex
+            return
+        }
+
+        if let nextUnreviewedIndex = nextUnreviewedCardIndex(after: ratedIndex) {
+            currentIndex = nextUnreviewedIndex
+            return
+        }
+
+        isComplete = true
+    }
+
+    private func nextUnreviewedCardIndex(after index: Int) -> Int? {
+        guard cards.isEmpty == false else {
+            return nil
+        }
+
+        let trailingIndices = cards.indices.dropFirst(index + 1)
+        if let nextIndex = trailingIndices.first(where: { sessionReviewResults[cards[$0].id] == nil }) {
+            return nextIndex
+        }
+
+        return cards.indices.prefix(index).first(where: { sessionReviewResults[cards[$0].id] == nil })
+    }
+
+    static func preloadRadius(for totalCards: Int) -> Int {
+        switch totalCards {
+        case 0...5:
+            return totalCards
+        case 6...15:
+            return 3
+        case 16...50:
+            return 4
+        case 51...150:
+            return 5
+        default:
+            return 6
+        }
+    }
+
+    static func preloadedCards(
+        cards: [VerseCard],
+        currentIndex: Int,
+        radius: Int
+    ) -> [PreloadedReviewCard] {
+        guard cards.isEmpty == false else {
+            return []
+        }
+
+        let clampedIndex = min(max(currentIndex, cards.startIndex), cards.index(before: cards.endIndex))
+        let startIndex = max(cards.startIndex, clampedIndex - radius)
+        let endIndex = min(cards.index(before: cards.endIndex), clampedIndex + radius)
+
+        return (startIndex...endIndex).map { index in
+            PreloadedReviewCard(index: index, card: cards[index])
         }
     }
 }

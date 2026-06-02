@@ -113,7 +113,7 @@ struct BookSelectionView: View {
         VFEmptyStateView(
             systemName: "book.closed",
             title: searchText.isEmpty ? "No books are available." : "No matching books.",
-            message: searchText.isEmpty ? "KJV data could not be loaded." : "Try a different book name.",
+            message: searchText.isEmpty ? "Bible reference data could not be loaded." : "Try a different book name.",
             alignment: .leading
         )
     }

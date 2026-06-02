@@ -23,10 +23,8 @@ struct HomeView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: VFSpacing.xLarge) {
-                    header
-                        .padding(.top, VFSpacing.large)
-
                     greeting
+                        .padding(.top, VFSpacing.large)
 
                     todayReviewCard
 
@@ -70,21 +68,6 @@ struct HomeView: View {
         }
     }
 
-    private var header: some View {
-        HStack(spacing: VFSpacing.medium) {
-            HomeLogoMark()
-                .frame(width: 44, height: 50)
-
-            Text("VerseFlip")
-                .font(.system(size: 30, weight: .bold, design: .serif))
-                .foregroundStyle(VFColors.primaryNavy)
-
-            Spacer()
-
-            VFHeaderAccessoryIcon(systemName: "bell")
-        }
-    }
-
     private var greeting: some View {
         HStack(alignment: .top, spacing: VFSpacing.medium) {
             Image(systemName: "sun.max.fill")
@@ -108,37 +91,53 @@ struct HomeView: View {
 
     private var greetingText: String {
         let nickname = userNickname.trimmingCharacters(in: .whitespacesAndNewlines)
-        return nickname.isEmpty ? "Good morning" : "Good morning, \(nickname)"
+        let greeting = timeBasedGreeting
+        return nickname.isEmpty ? greeting : "\(greeting), \(nickname)"
+    }
+
+    private var timeBasedGreeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+
+        switch hour {
+        case 5..<12:
+            return "Good morning"
+        case 12..<17:
+            return "Good afternoon"
+        default:
+            return "Good evening"
+        }
     }
 
     private var todayReviewCard: some View {
-        VFCard(padding: VFSpacing.large) {
-            VStack(spacing: VFSpacing.large) {
-                HStack(alignment: .center, spacing: VFSpacing.xLarge) {
-                    ZStack(alignment: .bottomTrailing) {
+        VFCard(padding: VFSpacing.xLarge) {
+            VStack(alignment: .leading, spacing: 20) {
+                HStack(alignment: .center, spacing: 20) {
+                    ZStack {
                         Circle()
-                            .fill(VFColors.warmCream)
-                            .frame(width: 104, height: 104)
+                            .fill(VFColors.warmCream.opacity(0.8))
+                            .frame(width: 100, height: 100)
 
-                        Image(systemName: "menucard.fill")
-                            .font(.system(size: 56, weight: .semibold))
+                        Image(systemName: "rectangle.stack.fill")
+                            .font(.system(size: 44, weight: .semibold))
                             .foregroundStyle(VFColors.primaryNavy)
-
+                    }
+                    .overlay(alignment: .bottomTrailing) {
                         Image(systemName: "star.circle.fill")
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundStyle(VFColors.softGold)
                             .background(Circle().fill(VFColors.cardBackground))
-                            .offset(x: 4, y: 4)
                     }
+                    .frame(width: 100, height: 100)
+                    .accessibilityHidden(true)
 
-                    VStack(alignment: .leading, spacing: VFSpacing.medium) {
+                    VStack(alignment: .leading, spacing: VFSpacing.small) {
                         Text("Today's Review")
                             .font(.system(size: 20, weight: .bold, design: .serif))
                             .foregroundStyle(VFColors.primaryNavy)
 
-                        HStack(alignment: .firstTextBaseline, spacing: VFSpacing.medium) {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
                             Text("\(viewModel.dueForReviewCount)")
-                                .font(.system(size: 50, weight: .bold, design: .serif))
+                                .font(.system(size: 36, weight: .bold, design: .serif))
                                 .foregroundStyle(VFColors.primaryNavy)
 
                             Text("cards due")
@@ -203,33 +202,6 @@ struct HomeView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("View Library")
             }
-        }
-    }
-}
-
-private struct HomeLogoMark: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .stroke(VFColors.softGold, lineWidth: 3)
-                .frame(width: 31, height: 41)
-                .overlay(alignment: .bottomLeading) {
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .stroke(VFColors.softGold, lineWidth: 3)
-                        .frame(width: 23, height: 11)
-                        .background(VFColors.warmCream)
-                        .offset(y: 1)
-                }
-
-            Image(systemName: "cross")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(VFColors.softGold)
-                .offset(y: -7)
-
-            Image(systemName: "arrow.right")
-                .font(.system(size: 17, weight: .heavy))
-                .foregroundStyle(VFColors.softGold)
-                .offset(x: 18, y: 19)
         }
     }
 }

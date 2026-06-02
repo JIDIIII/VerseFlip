@@ -64,15 +64,12 @@ struct ReviewView: View {
         }
     }
 
-    private func reviewContent(for card: VerseCard) -> some View {
+    private func reviewContent(for _: VerseCard) -> some View {
         GeometryReader { geometry in
             let cardHeight = min(max(geometry.size.height * 0.44, 300), 420)
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: VFSpacing.large) {
-                    reviewHeader
-                        .padding(.top, VFSpacing.large)
-
                     VStack(spacing: VFSpacing.small) {
                         Text("Review")
                             .font(.system(size: 36, weight: .bold, design: .serif))
@@ -84,17 +81,23 @@ struct ReviewView: View {
 
                         ProgressSegments(total: viewModel.totalCount, currentIndex: viewModel.currentIndex)
                     }
+                    .padding(.top, VFSpacing.large)
 
                     deckSelector
 
-                    FlipCardView(
-                        card: card,
+                    CardWheelSliderView(
+                        items: viewModel.visiblePreloadedCards,
+                        selectedIndex: viewModel.selectedCardIndex,
+                        totalCount: viewModel.totalCount,
                         isShowingVerse: viewModel.isFlipped,
                         maxCardHeight: cardHeight,
                         onTap: {
                             withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
                                 viewModel.toggleFlip()
                             }
+                        },
+                        onSelectIndex: { index in
+                            viewModel.setSelectedCardIndex(index)
                         }
                     )
 
@@ -104,21 +107,6 @@ struct ReviewView: View {
                 .padding(.horizontal, VFSpacing.xLarge)
                 .padding(.bottom, VFSpacing.large)
             }
-        }
-    }
-
-    private var reviewHeader: some View {
-        HStack(spacing: VFSpacing.medium) {
-            ReviewLogoMark()
-                .frame(width: 44, height: 50)
-
-            Text("VerseFlip")
-                .font(.system(size: 30, weight: .bold, design: .serif))
-                .foregroundStyle(VFColors.primaryNavy)
-
-            Spacer()
-
-            VFHeaderAccessoryIcon(systemName: "bell")
         }
     }
 
@@ -194,12 +182,10 @@ struct ReviewView: View {
     private var emptyState: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: VFSpacing.xLarge) {
-                reviewHeader
-                    .padding(.top, VFSpacing.large)
-
                 Text("Review")
                     .font(.system(size: 36, weight: .bold, design: .serif))
                     .foregroundStyle(VFColors.primaryNavy)
+                    .padding(.top, VFSpacing.large)
 
                 deckSelector
 
@@ -312,33 +298,6 @@ private struct ReviewGradeButton: View {
         .buttonStyle(.plain)
         .accessibilityLabel(title)
         .accessibilityHint(subtitle)
-    }
-}
-
-private struct ReviewLogoMark: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .stroke(VFColors.softGold, lineWidth: 3)
-                .frame(width: 31, height: 41)
-                .overlay(alignment: .bottomLeading) {
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .stroke(VFColors.softGold, lineWidth: 3)
-                        .frame(width: 23, height: 11)
-                        .background(VFColors.warmCream)
-                        .offset(y: 1)
-                }
-
-            Image(systemName: "cross")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(VFColors.softGold)
-                .offset(y: -7)
-
-            Image(systemName: "arrow.right")
-                .font(.system(size: 17, weight: .heavy))
-                .foregroundStyle(VFColors.softGold)
-                .offset(x: 18, y: 19)
-        }
     }
 }
 

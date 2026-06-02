@@ -86,16 +86,14 @@ struct FlipCardView: View {
                 .background(VFColors.warmCream)
                 .clipShape(Circle())
 
-            Text(card.reference)
+            Text(frontReference)
                 .font(.system(size: referenceTextSize, weight: .bold, design: .serif))
                 .foregroundStyle(VFColors.primaryNavy)
                 .multilineTextAlignment(.center)
                 .lineLimit(4)
                 .minimumScaleFactor(0.72)
 
-            Text(card.bibleVersion.rawValue)
-                .font(VFFonts.callout)
-                .foregroundStyle(VFColors.textMuted)
+            copyrightNotice
         }
         .frame(maxWidth: .infinity)
     }
@@ -116,14 +114,42 @@ struct FlipCardView: View {
                     .lineLimit(nil)
                     .minimumScaleFactor(0.75)
                     .fixedSize(horizontal: false, vertical: true)
+
+                copyrightNotice
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity)
     }
 
+    @ViewBuilder
+    private var copyrightNotice: some View {
+        if let notice = card.bibleVersion.copyrightNotice {
+            Text(notice)
+                .font(VFFonts.footnote)
+                .foregroundStyle(VFColors.textMuted)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     private var referenceTextSize: CGFloat {
-        card.reference.count > 30 ? 28 : 32
+        frontReference.count > 30 ? 28 : 32
+    }
+
+    private var frontReference: String {
+        let reference = card.reference.trimmingCharacters(in: .whitespacesAndNewlines)
+        let version = card.bibleVersion.rawValue
+
+        guard reference.isEmpty == false else {
+            return version
+        }
+
+        if reference.uppercased().hasSuffix(" \(version.uppercased())") {
+            return reference
+        }
+
+        return "\(reference) \(version)"
     }
 
     private func verseTextSize(for text: String) -> CGFloat {

@@ -8,7 +8,7 @@ VerseFlip is a SwiftUI iOS app for saving Bible verses as flashcards and reviewi
 - Home dashboard with today's verse and progress surfaces.
 - Verse picker flow for Bible version, book, chapter, verse selection, and card preview.
 - Local KJV browsing from bundled JSON data.
-- ESV and NIV version options are present but intentionally unavailable until official licensed integrations are implemented.
+- ESV and NIV API-backed version options are enabled when their API keys are configured.
 - Flashcard library with decks, saved verse rows, deck detail views, and deck creation.
 - Review flow with flip cards and Again, Good, and Memorized outcomes.
 - Local JSON persistence for decks and verse cards in Application Support.
@@ -59,7 +59,7 @@ The project is an Xcode app project, not a Swift Package. Open `VerseFlip.xcodep
 
 KJV is loaded locally from `VerseFlip/Data/kjv.json`.
 
-ESV and NIV are modeled in the app, but their services currently return unavailable states. Do not bundle copyrighted ESV or NIV text directly in this repository. Future support should use official, licensed API access or another properly licensed source.
+ESV is fetched on demand through the official ESV API when an API key is configured. NIV is fetched on demand through the RapidAPI NIV Bible endpoint when a RapidAPI key authorized for `niv-bible.p.rapidapi.com` is configured. Do not bundle copyrighted ESV or NIV text directly in this repository.
 
 Optional API key lookup already exists for these Info.plist keys:
 
@@ -68,7 +68,35 @@ ESV_API_KEY
 NIV_API_KEY
 ```
 
-Providing those keys does not enable ESV or NIV yet; the official integrations still need to be implemented.
+Put your real ESV and NIV API keys in the ignored local config file:
+
+```text
+./Secrets.xcconfig
+```
+
+Example:
+
+```text
+ESV_API_KEY = your_real_esv_api_key_here
+NIV_API_KEY = your_real_niv_api_key_here
+```
+
+Do not put quotation marks around the key unless Xcode requires it. `Secrets.xcconfig` is ignored by Git; use `Secrets.example.xcconfig` as the committed template.
+
+Providing an ESV key enables the Add Verse ESV fetch flow. ESV requests use this header format:
+
+```text
+Authorization: Token <api key>
+```
+
+Providing a RapidAPI NIV Bible key enables the Add Verse NIV fetch flow if the key has NIV access. NIV requests use this URL and header format:
+
+```text
+GET https://niv-bible.p.rapidapi.com/row?Book=Genesis&Chapter=1&Verse=1
+Content-Type: application/json
+x-rapidapi-host: niv-bible.p.rapidapi.com
+x-rapidapi-key: <api key>
+```
 
 ## Local Persistence
 
@@ -87,7 +115,7 @@ Application Support/VerseFlip/verse_cards.json
 - Use the shared `Theme/` and `Components/` helpers before introducing new one-off styling.
 - Use the mockups in `UIMockups/` as the root visual reference set.
 - Keep KJV functional locally when changing Bible service code.
-- Treat ESV and NIV as unavailable until official licensed integrations are added.
+- Keep copyrighted ESV and NIV text API-backed; do not commit raw translation text.
 
 ## Useful Verification Commands
 

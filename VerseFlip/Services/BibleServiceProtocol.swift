@@ -30,6 +30,27 @@ enum BibleServiceAvailability: Equatable {
     }
 }
 
+struct VerseCardDraft: Equatable {
+    let verseText: String
+    let reference: String
+    let bibleVersion: BibleVersion
+}
+
+enum BiblePassageFetchError: LocalizedError {
+    case unavailable(reason: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .unavailable(let reason):
+            return reason
+        }
+    }
+}
+
+protocol BiblePassageFetching {
+    func fetchPassage(reference: String) async throws -> VerseCardDraft
+}
+
 protocol BibleVersionServiceProtocol {
     var version: BibleVersion { get }
     var availability: BibleServiceAvailability { get }
@@ -47,6 +68,7 @@ protocol BibleServiceProtocol {
     func getChapters(version: BibleVersion, book: BibleBook) -> [BibleChapter]
     func getVerses(version: BibleVersion, book: BibleBook, chapter: Int) -> [BibleVerse]
     func getVerseRange(version: BibleVersion, book: BibleBook, chapter: Int, startVerse: Int, endVerse: Int?) -> [BibleVerse]
+    func fetchPassage(version: BibleVersion, reference: String) async throws -> VerseCardDraft
 }
 
 extension BibleVersionServiceProtocol {
@@ -72,5 +94,9 @@ extension BibleServiceProtocol {
 
     func getVerseRange(book: BibleBook, chapter: Int, startVerse: Int, endVerse: Int?) -> [BibleVerse] {
         getVerseRange(version: .kjv, book: book, chapter: chapter, startVerse: startVerse, endVerse: endVerse)
+    }
+
+    func fetchPassage(version: BibleVersion, reference: String) async throws -> VerseCardDraft {
+        throw BiblePassageFetchError.unavailable(reason: "\(version.rawValue) passage fetching is not available.")
     }
 }
